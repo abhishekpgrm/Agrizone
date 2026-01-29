@@ -11,31 +11,37 @@ def alerts_home(request):
     return render(request, 'pest_alerts/alerts.html')
 
 def get_alerts(request):
-    crop = request.GET.get('crop', '').lower()
-    location = request.GET.get('location', '').strip()
-    
-    if not crop or not location:
-        return JsonResponse({'success': False, 'error': 'Please enter both crop and location'})
-    
-    # Get weather data
-    weather_data = get_weather_data(location)
-    
-    # Use fallback weather data if API fails
-    if not weather_data:
-        weather_data = {
-            'temp': 28.0,
-            'humidity': 75.0,
-            'description': 'typical conditions (API unavailable)'
-        }
-    
-    # Find matching alerts
-    alerts = find_matching_alerts(crop, weather_data)
-    
-    return JsonResponse({
-        'success': True,
-        'alerts': alerts,
-        'weather': weather_data
-    })
+    try:
+        crop = request.GET.get('crop', '').lower()
+        location = request.GET.get('location', '').strip()
+        
+        if not crop or not location:
+            return JsonResponse({'success': False, 'error': 'Please enter both crop and location'})
+        
+        # Get weather data
+        weather_data = get_weather_data(location)
+        
+        # Use fallback weather data if API fails
+        if not weather_data:
+            weather_data = {
+                'temp': 28.0,
+                'humidity': 75.0,
+                'description': 'typical conditions (API unavailable)'
+            }
+        
+        # Find matching alerts
+        alerts = find_matching_alerts(crop, weather_data)
+        
+        return JsonResponse({
+            'success': True,
+            'alerts': alerts,
+            'weather': weather_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error: {str(e)}. Please ensure database is properly configured.'
+        })
 
 def get_weather_data(location):
     try:

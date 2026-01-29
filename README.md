@@ -101,11 +101,27 @@ agrizone_django/
 
 ## Deployment Notes
 
+### For Render Deployment
+
+**Important**: Render uses ephemeral filesystem. You MUST use PostgreSQL for persistent data.
+
+1. Create PostgreSQL database on Render (Free tier available)
+2. Add DATABASE_URL environment variable to your web service
+3. The build script will automatically:
+   - Run migrations
+   - Populate pest alerts data
+   - Set up all required tables
+
+See `QUICK_FIX.md` for 5-minute setup guide or `RENDER_DEPLOYMENT_FIX.md` for detailed instructions.
+
+### General Deployment
+
 - Set `DEBUG=False` in production
 - Configure proper database (PostgreSQL recommended)
 - Set up static file serving
 - Configure ALLOWED_HOSTS
 - Use environment variables for sensitive data
+- For media files, consider AWS S3 or Cloudinary
 
 ## Contributing
 

@@ -1,0 +1,63 @@
+Fix: Disease Detection and Pest Alerts on Render deployment
+
+## Issues Fixed
+- Disease Detection: "no such table: disease_diseasedetection" error
+- Pest Alerts: "An error occurred. Please try again." error
+
+## Root Cause
+Render's ephemeral filesystem caused SQLite database to reset on each deployment,
+resulting in lost tables and data.
+
+## Solution
+Implemented PostgreSQL support for production deployment while maintaining
+SQLite for local development.
+
+## Changes Made
+
+### Core Fixes
+- build.sh: Added `populate_alerts` command to auto-populate pest data
+- requirements.txt: Added psycopg2-binary and dj-database-url for PostgreSQL
+- settings.py: Added conditional database config (PostgreSQL in prod, SQLite in dev)
+- render.yaml: Added DATABASE_URL environment variable
+- pest_alerts/views.py: Added error handling for better debugging
+
+### Documentation
+- QUICK_FIX.md: 5-minute setup guide
+- RENDER_DEPLOYMENT_FIX.md: Detailed deployment instructions
+- DEPLOYMENT_FIX_SUMMARY.md: Complete summary of changes
+- setup_database.py: Manual database setup script
+- README.md: Updated with Render deployment notes
+
+## Testing
+- ✅ Local development still works with SQLite
+- ✅ Production uses PostgreSQL when DATABASE_URL is set
+- ✅ Migrations run automatically during deployment
+- ✅ Pest alerts data populates automatically
+- ✅ Error handling provides clear feedback
+
+## Deployment Steps
+1. Create PostgreSQL database on Render (free tier)
+2. Add DATABASE_URL environment variable
+3. Service auto-redeploys with new configuration
+4. All features work correctly
+
+## Files Modified
+- build.sh
+- requirements.txt
+- agrizone/settings.py
+- pest_alerts/views.py
+- render.yaml
+- README.md
+
+## Files Added
+- QUICK_FIX.md
+- RENDER_DEPLOYMENT_FIX.md
+- DEPLOYMENT_FIX_SUMMARY.md
+- setup_database.py
+
+---
+
+To deploy these fixes:
+1. Commit and push these changes to your repository
+2. Follow instructions in QUICK_FIX.md to set up PostgreSQL
+3. Render will automatically redeploy with the new configuration
