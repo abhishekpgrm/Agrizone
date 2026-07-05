@@ -12,4 +12,6 @@ gunicorn>=21.0.0
 whitenoise>=6.5.0
 xgboost>=2.0.0
 joblib>=1.3.0
-tensorflow>=2.15.0
+torch==2.1.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+torchvision==0.16.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
+kagglehub>=0.2.0

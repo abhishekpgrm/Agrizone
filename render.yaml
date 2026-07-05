@@ -2,18 +2,21 @@ services:
   - type: web
     name: agrizone
     env: python
+    plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn agrizone.wsgi:application --timeout 120 --workers 1"
+    startCommand: "gunicorn agrizone.wsgi:application --timeout 120 --workers 1 --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
-        value: False
+        value: false
+      - key: GEMINI_API_KEY
+        sync: false
       - key: OPENWEATHER_API_KEY
         sync: false
-      - key: OPENAI_API_KEY
+      - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD
         sync: false
