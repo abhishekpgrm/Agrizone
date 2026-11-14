@@ -23,6 +23,33 @@ _label_encoder = None
 _crop_info = None
 
 
+def _retrain_model():
+    """Retrain the crop model to fix sklearn version mismatch issues."""
+    global _model, _scaler, _label_encoder, _crop_info
+    try:
+        logger.info("Auto-retraining crop model to fix version mismatch...")
+        from ml_models.train_crop_model import train_and_evaluate
+        trained_model, trained_scaler, trained_encoder = train_and_evaluate()
+        _model = trained_model
+        _scaler = trained_scaler
+        _label_encoder = trained_encoder
+
+        # Load crop info (freshly saved by train_and_evaluate)
+        info_path = os.path.join(MODEL_DIR, 'crop_info.json')
+        if os.path.exists(info_path):
+            with open(info_path, 'r') as f:
+                _crop_info = json.load(f)
+        else:
+            _crop_info = {}
+
+        logger.info("Crop model retrained and loaded successfully.")
+        return True
+    except Exception as retrain_err:
+        logger.error("Auto-retrain also failed: %s", retrain_err)
+        _model = None
+        return False
+
+
 def _load_models():
     """Load and cache ML models. Called once on first prediction."""
     global _model, _scaler, _label_encoder, _crop_info
@@ -37,8 +64,8 @@ def _load_models():
         info_path = os.path.join(MODEL_DIR, 'crop_info.json')
 
         if not os.path.exists(model_path):
-            logger.warning("Crop model not found at %s. Run train_crop_model.py first.", model_path)
-            return False
+            logger.warning("Crop model not found at %s. Attempting to train...", model_path)
+            return _retrain_model()
 
         with open(model_path, 'rb') as f:
             _model = pickle.load(f)
@@ -46,6 +73,14 @@ def _load_models():
             _scaler = pickle.load(f)
         with open(encoder_path, 'rb') as f:
             _label_encoder = pickle.load(f)
+
+        # Verify the model works (catches 'monotonic_cst' and similar issues)
+        try:
+            _model.predict(np.zeros((1, 7)))
+        except Exception as verify_err:
+            logger.warning("Loaded model is incompatible (%s). Retraining...", verify_err)
+            _model = None
+            return _retrain_model()
 
         if os.path.exists(info_path):
             with open(info_path, 'r') as f:
@@ -57,9 +92,9 @@ def _load_models():
         return True
 
     except Exception as e:
-        logger.error("Failed to load crop models: %s", e)
+        logger.warning("Failed to load crop models (%s). Attempting retrain...", e)
         _model = None
-        return False
+        return _retrain_model()
 
 
 def predict_crop(nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall):

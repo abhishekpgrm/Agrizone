@@ -298,7 +298,7 @@ def predict_disease(image_path):
                         confidence = conf_val.item() * 100
                         disease_class = _idx_to_class.get(pred_idx, 'Unknown')
 
-                    if confidence >= 60.0:
+                    if confidence >= 30.0:
                         treatment = _get_treatment_info(disease_class)
                         return disease_class, round(confidence, 1), treatment
             except Exception as e:
